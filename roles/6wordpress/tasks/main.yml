@@ -1,0 +1,76 @@
+---
+# tasks file for latihan3/roles/wordpress
+# - name: download_and_extract_wordpress
+#   become: yes
+#   unarchive:
+#      src: https://wordpress.org/latest.zip
+#      dest: /var/www/html
+#      remote_src: yes
+#      owner: www-data
+#      group: www-data
+
+- git:
+    repo: 'https://github.com/WordPress/WordPress.git'
+    dest: /var/www/html/wordpress
+    version: "{{ wp_version }}"
+  become: yes
+
+- name: permission_path_wordpress
+  become: yes
+  file:
+    path: /var/www/html/wordpress
+    owner: www-data
+    group: www-data
+    recurse: yes
+
+- name: create_wp-config_from_sample
+  become: yes 
+  copy: 
+    src: /var/www/html/wordpress/wp-config-sample.php
+    dest: /var/www/html/wordpress/wp-config.php
+    owner: www-data
+    group: www-data
+    remote_src: yes
+    mode: 0644
+
+- name: configure_wp-config
+  become: yes
+  no_log: True
+  replace:
+    path: /var/www/html/wordpress/wp-config.php
+    regexp: "{{ item.old }}"
+    replace: "{{ item.new }}"
+  loop:
+    - { old: 'database_name_here', new: "{{ db_name }}" }
+    - { old: 'username_here', new: "{{ db_user }}" }
+    - { old: 'password_here', new: "{{ db_pass }}" }
+
+- name: remove_default_wordpress_encryption
+  become: yes
+  lineinfile:
+    path: /var/www/html/wordpress/wp-config.php
+    regexp: "{{ item }}"
+    state: absent
+  with_items:
+    - AUTH_KEY
+    - SECURE_AUTH_KEY
+    - LOGGED_IN_KEY
+    - NONCE_KEY
+    - AUTH_SALT
+    - SECURE_AUTH_SALT
+    - LOGGED_IN_SALT
+    - NONCE_SALT
+
+- name: getting_wordpress_encryption
+  uri: 
+    url: "https://api.wordpress.org/secret-key/1.1/salt/"
+    return_content: yes   
+  register: enc_key
+
+- name: configuring_wordpress_encryption
+  become: yes
+  blockinfile:
+    insertbefore: 'Sets up WordPress vars and included files'
+    path: /var/www/html/wordpress/wp-config.php
+    block: "{{enc_key.content}}"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK"

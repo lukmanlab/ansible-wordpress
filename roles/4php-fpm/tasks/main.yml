@@ -1,0 +1,16 @@
+---
+# tasks file for php-fpm
+- name: install_php-fpm_php-mysql
+  become: yes
+  apt:
+   name: ['php-fpm','php-mysql']
+   state: present
+  notify: restart_nginx
+
+- name: copy_file_phpinfo
+  become: yes
+  copy: 
+     src: info.php
+     dest: /var/www/html
+     owner: www-data
+     group: www-data

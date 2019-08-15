@@ -1,0 +1,7 @@
+---
+# tasks file for common
+- name: install_a_list_of_packages
+  become: yes
+  apt:
+   name: ['zip', 'git', 'unzip', 'python-mysqldb']
+   state: present

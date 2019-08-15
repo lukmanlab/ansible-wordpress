@@ -1,0 +1,45 @@
+---
+# tasks file for latihan3/mysql-server
+- name: install_devconf-utils
+  become: yes
+  apt:
+     name: debconf-utils
+
+- name: debconfig_root_password_for_mysql-server
+  become: yes
+  debconf:
+    name: mysql-server-5.7
+    question: mysql-server/root_password
+    value: "{{password_mysql}}"
+    vtype: password
+
+- name: debconfig_root_password_for_mysql-server_again
+  become: yes
+  debconf:
+    name: mysql-server-5.7
+    question: mysql-server/root_password_again
+    value: "{{password_mysql}}"
+    vtype: password
+
+- name: install_mysql_server_5.7
+  become: yes
+  apt:
+     name: mysql-server
+     state: present
+
+- name: login_mysql_without_password
+  template: 
+    src: my.cnf.j2
+    dest: ~/.my.cnf
+
+- name: create_a_new_database
+  mysql_db:
+    name: "{{db_name}}"
+    state: present
+
+- name: create_a_new_user
+  mysql_user:
+    name: "{{db_user}}"
+    password: "{{db_pass}}"
+    priv: "{{db_name}}.*:ALL,GRANT"
+    state: present

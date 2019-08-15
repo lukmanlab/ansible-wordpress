@@ -1,0 +1,7 @@
+---
+# vars file for latihan3/roles/wordpress
+db_user: "wpuser"
+db_name: "wordpress"
+db_pass: "password"
+
+wp_version: "5.1.1"

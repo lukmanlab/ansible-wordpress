@@ -1,0 +1,10 @@
+---
+- hosts: server
+  gather_facts: no
+  roles:
+    - 1prepare
+    - 2common
+    - 3nginx
+    - 4php-fpm
+    - 5mysql-server
+    - 6wordpress

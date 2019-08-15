@@ -1,0 +1,26 @@
+
+server {
+	listen 80 default_server;
+	listen [::]:80 default_server;
+
+	root /var/www/html;
+
+	index index.html index.php index.htm index.nginx-debian.html;
+
+	server_name {{domain}};
+
+
+	location / {
+		try_files $uri $uri/ =404;
+	}
+
+	location /wordpress {
+		index index.php;
+		try_files $uri $uri/ /wordpress/index.php?$args;
+	}
+
+    location ~ \.php$ {
+           include snippets/fastcgi-php.conf;
+           fastcgi_pass unix:/run/php/php7.2-fpm.sock;
+    }
+}
